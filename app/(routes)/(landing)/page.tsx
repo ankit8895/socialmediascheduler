@@ -1,3 +1,5 @@
+"use client";
+
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/8bit/button";
 import { useAuth, UserButton } from "@clerk/nextjs";
