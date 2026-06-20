@@ -13,12 +13,7 @@ export async function GET(req: NextRequest) {
     // 2. Fetch channel types AND the user's connected channels in ONE query!
     const { data: channelTypes, error } = await supabase
       .from("channel_types")
-      .select(
-        `
-        *,
-        user_channels (*)
-        `,
-      )
+      .select(`*, user_channels (*)`)
       .order("created_at", { ascending: true });
 
     if (error) {

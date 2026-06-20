@@ -4,6 +4,7 @@ import ChannelAvatar from "@/components/channel-avatar";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/8bit/button";
 import { Skeleton } from "@/components/ui/8bit/skeleton";
+import { toast } from "@/components/ui/8bit/toast";
 import {
   Sidebar,
   SidebarContent,
@@ -17,14 +18,14 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/8bitcn/sidebar";
 import { getChannelIcon, getChannelUrl } from "@/constants/channels";
 import { cn } from "@/lib/utils";
 import { ChannelType } from "@/types/channel.type";
 import { UserButton } from "@clerk/nextjs";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Calendar,
   CreditCard,
@@ -51,6 +52,10 @@ const AppSidebar = () => {
     queryKey: ["channels"],
     queryFn: async () => {
       const res = await fetch("/api/channel");
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch channels");
+      }
       const data = await res.json();
       return data;
     },
@@ -66,6 +71,34 @@ const AppSidebar = () => {
   const connectedCount = channelsData?.connectedCount || 0;
   const totalChannels = channelsData?.totalChannels || 0;
   const limitedChannels = unconnectedChannels.slice(0, 4);
+
+  const connectMutation = useMutation({
+    mutationFn: async (channelTypeId: string) => {
+      const res = await fetch("/api/channel/onnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelTypeId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to connect channel");
+      }
+      return data;
+    },
+    onSuccess: ({ url }) => {
+      window.location.href = url;
+    },
+    onError: (error) => {
+      toast("Failed to connect channel");
+    },
+  });
+
+  const handleConnect = (channelTypeId: string) => {
+    if (connectMutation.isPending) return;
+    connectMutation.mutate(channelTypeId);
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -119,13 +152,13 @@ const AppSidebar = () => {
                           >
                             <ChannelAvatar
                               size="sm"
-                              className=""
+                              className="w-full flex items-center gap-2"
                               type={channel.type}
                               color={channel.color}
-                              profileImage={channel.profileImage}
+                              profileImage={channel.profile_image}
                               name={
                                 !isCollapsed
-                                  ? channel.name || channel.handle
+                                  ? channel.handle || channel.name
                                   : ""
                               }
                             />
@@ -164,7 +197,12 @@ const AppSidebar = () => {
                           asChild
                           tooltip={`Connect ${channel.name}`}
                         >
-                          <Button className="w-full flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            className="w-full flex items-center justify-start gap-2 mt-0.5 "
+                            onClick={() => handleConnect(channel.id)}
+                            disabled={connectMutation.isPending}
+                          >
                             <span>
                               <div className="relative">
                                 {icon ? (
@@ -197,11 +235,12 @@ const AppSidebar = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Button
+                    variant="default"
+                    size="sm"
                     asChild
-                    variant="ghost"
-                    className="w-full justify-start mt-1"
+                    className="w-full justify-start mt-2"
                   >
-                    <Link href="/settings" className="w-full flex items-center">
+                    <Link href="/settings" className="w-full flex gap-2">
                       <PlusCircleIcon className="size-4" />
                       <span className="text-sm">More Channels</span>
                     </Link>

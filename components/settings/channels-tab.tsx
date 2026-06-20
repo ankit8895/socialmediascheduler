@@ -1,9 +1,14 @@
 "use client";
 
+import { getChannelIcon } from "@/constants/channels";
+import { cn } from "@/lib/utils";
 import { ChannelType } from "@/types/channel.type";
-import { useQuery } from "@tanstack/react-query";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import React, { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { Button } from "../ui/8bit/button";
 import {
   Card,
   CardContent,
@@ -12,31 +17,90 @@ import {
   CardTitle,
 } from "../ui/8bit/card";
 import { Skeleton } from "../ui/8bit/skeleton";
-import { getChannelIcon } from "@/constants/channels";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { cn } from "@/lib/utils";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { Button } from "../ui/8bit/button";
+import { toast } from "../ui/8bit/toast";
 
 function ChannelTabContent() {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
   const { data: channelsData, isPending } = useQuery({
     queryKey: ["channels"],
     queryFn: async () => {
       const res = await fetch("/api/channel");
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch channels");
+      }
       const data = await res.json();
       return data;
     },
   });
 
-  const channels = (channelsData?.channels || []) as ChannelType;
+  const channels = (channelsData?.channels || []) as ChannelType[];
 
-  const handleConnect = (userChannelId: string) => {
-    if (!userChannelId) return;
+  useEffect(() => {
+    const connected = searchParams.get("connected");
+    const error = searchParams.get("error");
+    const channelType = searchParams.get("channelType");
+
+    if (!connected && !error) return;
+    queryClient.invalidateQueries({ queryKey: ["channels"] });
+    if (connected) {
+      toast(`Successfully connected to ${channelType}`);
+    }
+    if (error) {
+      toast(`Failed to connect to ${channelType}`);
+    }
+  }, [queryClient, searchParams]);
+
+  const connectMutation = useMutation({
+    mutationFn: async (channelTypeId: string) => {
+      const res = await fetch("/api/channel/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channelTypeId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to start connection");
+      return data;
+    },
+    onSuccess: ({ url }) => {
+      window.location.href = url;
+    },
+    onError: (error: Error) => {
+      toast(error.message || "Failed to start connection");
+    },
+  });
+
+  const disconnectMutation = useMutation({
+    mutationFn: async (userChannelId: string) => {
+      const res = await fetch("/api/channel/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userChannelId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to start connection");
+      return data;
+    },
+    onSuccess: () => {
+      toast("Channel disconnected Successfully");
+      queryClient.invalidateQueries({ queryKey: ["channels"] });
+    },
+    onError: (error: Error) => {
+      toast(error.message || "Failed to start connection");
+    },
+  });
+
+  const handleConnect = (channelTypeId: string) => {
+    if (!channelTypeId) return;
+    if (connectMutation.isPending) return;
+    connectMutation.mutate(channelTypeId);
   };
   const handleDisconnect = (userChannelId: string) => {
     if (!userChannelId) return;
+    if (disconnectMutation.isPending) return;
+    disconnectMutation.mutate(userChannelId);
   };
   return (
     <Card>
@@ -107,8 +171,12 @@ function ChannelTabContent() {
                       size="sm"
                       onClick={() =>
                         channel.connected
-                          ? handleDisconnect(channel.userChannelId!)
-                          : handleConnect(channel.userChannelId!)
+                          ? handleDisconnect(channel.user_channel_id!)
+                          : handleConnect(channel.id!)
+                      }
+                      disabled={
+                        connectMutation.isPending ||
+                        disconnectMutation.isPending
                       }
                     >
                       {channel.connected ? "Disconnect" : "Connect"}

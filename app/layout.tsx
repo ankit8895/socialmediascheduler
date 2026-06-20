@@ -1,11 +1,13 @@
 import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { Outfit, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import React from "react";
 import QueryProvider from "@/components/query-provider";
+import { TooltipProvider } from "@/components/ui/8bitcn/tooltip";
+import { Toaster } from "@/components/ui/8bitcn/sonner";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -33,6 +35,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${outfit.variable} ${pressStart2P.variable} h-full antialiased`}
+      // suppressHydrationWarning: needed for next-themes class injection on <html>
       suppressHydrationWarning
       style={
         {
@@ -51,6 +54,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <TooltipProvider>{children}</TooltipProvider>
+              <Toaster />
             </ThemeProvider>
           </QueryProvider>
         </ClerkProvider>
