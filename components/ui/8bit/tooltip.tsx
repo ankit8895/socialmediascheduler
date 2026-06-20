@@ -11,7 +11,7 @@ import {
   TooltipContent as ShadcnTooltipContent,
   TooltipProvider as ShadcnTooltipProvider,
   TooltipTrigger as ShadcnTooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/8bitcn/tooltip";
 
 import "@/components/ui/8bit/styles/retro.css";
 

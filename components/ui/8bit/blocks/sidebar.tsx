@@ -9,7 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/8bitcn/sidebar";
 
 import "@/components/ui/8bit/styles/retro.css";
 

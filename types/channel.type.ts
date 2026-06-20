@@ -5,10 +5,10 @@ export type ChannelType = {
   type: ChannelTypeEnum;
   name?: string;
   color: string;
-  characterLimit: number;
+  character_limit: number;
   connected: boolean;
-  userChannelId?: string | null;
+  user_channel_id?: string | null;
   handle?: string | null;
-  profileImage?: string | null;
-  profileImageUrl?: string | null;
+  profile_image?: string | null;
+  profile_url?: string | null;
 };
