@@ -83,15 +83,16 @@ function createProvider(
       redirectUri,
       codeVerifier,
     }): Promise<OAuthTokenResponse> => {
+      const config = getConfig(type);
       const params = new URLSearchParams({
         grant_type: "authorization_code",
         code,
         redirect_uri: redirectUri,
-        client_id: getConfig(type).clientId,
+        client_id: config.clientId,
       });
 
       if (!opts.pkce) {
-        params.append("client_secret", getConfig(type).clientSecret);
+        params.append("client_secret", config.clientSecret);
       }
 
       if (codeVerifier) {
@@ -157,7 +158,7 @@ function createProvider(
 
       const data = await response.json();
 
-      const profileData = data ?? data?.user ?? data?.data;
+      const profileData = data?.data ?? data?.user ?? data;
       const providerAccountId =
         profileData?.id ?? profileData?.sub ?? profileData?.user_id ?? null;
       const handle =
@@ -182,7 +183,7 @@ function createProvider(
   };
 }
 
-const PROVIDERS: Record<ChannelTypeEnum, any> = {
+const PROVIDERS: Record<ChannelTypeEnum, OAuthProvider> = {
   [ChannelTypeEnum.TWITTER]: createProvider(ChannelTypeEnum.TWITTER, {
     pkce: true,
   }),

@@ -7,12 +7,11 @@ import {
 
 const ENCRYPTION_KEY = process.env.CHANNEL_TOKEN_ENCRYPTION_KEY!;
 
-if (!ENCRYPTION_KEY) {
-  throw new Error("CHANNEL_TOKEN_ENCRYPTION_KEY is not defined");
-}
-
 export function encrypt(text: string | null | undefined) {
   if (!text) return null;
+  if (!ENCRYPTION_KEY) {
+    throw new Error("CHANNEL_TOKEN_ENCRYPTION_KEY is not defined");
+  }
 
   const iv = randomBytes(12);
 
@@ -37,6 +36,9 @@ export function encrypt(text: string | null | undefined) {
 
 export function decrypt(encrypted: string | null | undefined) {
   if (!encrypted) return null;
+  if (!ENCRYPTION_KEY) {
+    throw new Error("CHANNEL_TOKEN_ENCRYPTION_KEY is not defined");
+  }
 
   const [iv, tag, encryted] = encrypted.split(".");
 

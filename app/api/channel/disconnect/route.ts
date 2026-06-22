@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         is_connected: false,
         is_active: false,
       })
-      .eq("id", userChannelData)
+      .eq("id", userChannelId)
       .eq("user_id", userId);
 
     if (updateError) {

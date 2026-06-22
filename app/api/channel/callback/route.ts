@@ -1,6 +1,6 @@
 import { ChannelTypeEnum } from "@/constants/channels";
 import { getOAuthProvider } from "@/lib/social-oauth";
-import { encrypt } from "@/lib/social-oauth/encryption";
+import { encrypt } from "@/lib/encryption";
 import { getPkceCookieName } from "@/lib/social-oauth/pkce";
 import { verifyOAuthState } from "@/lib/social-oauth/state";
 import { OAuthProvider } from "@/lib/social-oauth/types";
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
       provider_account_id: profile.providerAccountId ?? null,
       handle: profile.handle ?? null,
       profile_image: profile.profileImage ?? null,
-      access_Token: encrypt(token.accessToken),
+      access_token: encrypt(token.accessToken),
       refresh_token: encrypt(token.refreshToken ?? null),
       token_expires_at: token.expiresAt ?? null,
       is_connected: true,
