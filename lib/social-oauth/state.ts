@@ -37,7 +37,7 @@ export function createOAuthState(
 export function verifyOAuthState(state: string): OAuthStatePayload {
   const [encodedState, signature] = state.split(".");
   if (!encodedState || !signature) {
-    throw new Error("Invalid state formate");
+    throw new Error("Invalid state format");
   }
 
   const expectedSignature = createHmac("sha256", OAUTH_STATE_SECRET)

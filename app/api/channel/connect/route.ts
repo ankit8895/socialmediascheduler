@@ -6,7 +6,7 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL!;
 
 export async function POST(req: NextRequest) {
   try {
