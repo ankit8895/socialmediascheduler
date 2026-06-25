@@ -143,7 +143,7 @@ const ContentTextarea = ({
               <ImagePlus className="h-5 w-5 text-muted-foreground mb-1" />
             )}
 
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs text-center text-muted-foreground">
               {isUploading ? "Uploading..." : "Select file"}
             </span>
           </div>
@@ -168,7 +168,9 @@ const ContentTextarea = ({
                   <Image
                     src={image.url}
                     alt={`Upload ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
                   />
                   <Button
                     onClick={() => handleRemoveImage(index)}

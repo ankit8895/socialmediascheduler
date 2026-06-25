@@ -2,7 +2,18 @@
 
 import ChannelAvatar from "@/components/channel-avatar";
 import Logo from "@/components/logo";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/8bit/avatar";
 import { Button } from "@/components/ui/8bit/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/8bit/dropdown-menu";
 import { Skeleton } from "@/components/ui/8bit/skeleton";
 import { toast } from "@/components/ui/8bit/toast";
 import {
@@ -22,7 +33,7 @@ import {
 import { getChannelIcon, getChannelUrl } from "@/constants/channels";
 import { cn } from "@/lib/utils";
 import { ChannelType } from "@/types/channel.type";
-import { UserButton } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -47,6 +58,8 @@ const AppSidebar = () => {
   const pathname = usePathname();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { user } = useUser();
+  const { openUserProfile, signOut } = useClerk();
 
   const { data: channelsData, isPending } = useQuery({
     queryKey: ["channels"],
@@ -101,7 +114,7 @@ const AppSidebar = () => {
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="font-pixel">
       <SidebarHeader className={cn("p-4", isCollapsed && "p-2")}>
         <div className="flex items-center justify-between">
           <Logo hideName={isCollapsed} />
@@ -175,7 +188,7 @@ const AppSidebar = () => {
 
         {/* UNCONNECTED CHANNELS */}
         <SidebarGroup className={cn(isCollapsed && "px-1")}>
-          <SidebarGroupLabel className="text-sm">
+          <SidebarGroupLabel className="text-xs">
             Connect Channels
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -257,12 +270,36 @@ const AppSidebar = () => {
             {connectedCount}/{totalChannels} channels connected
           </span>
         </div>
-        <div>
-          <UserButton
-            showName={true}
-            appearance={{ elements: { avatarBox: "h-8 w-8" } }}
-          />
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center cursor-pointer">
+              <Avatar className="h-8 w-8 flex gap-2">
+                <AvatarImage
+                  src={user?.imageUrl}
+                  alt={user?.fullName || "User"}
+                  className="rendering-pixelated"
+                />
+                <AvatarFallback>
+                  {user?.firstName?.charAt(0) || "U"}
+                </AvatarFallback>
+                <span className="text-xs">
+                  {user?.fullName || user?.primaryEmailAddress?.emailAddress}
+                </span>
+              </Avatar>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => openUserProfile()}>
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => signOut({ redirectUrl: "/" })}
+              className="text-destructive"
+            >
+              Signout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );
