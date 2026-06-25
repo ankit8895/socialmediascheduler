@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from "@/lib/supabase";
+import { getSupabaseStorageClient } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     if (!userId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const supabase = await getSupabaseServerClient();
+    const supabase = await getSupabaseStorageClient();
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     const key = `image/${userId}/${Date.now()}-${sanitizeFileName(file.name)}`;
     const { data, error } = await supabase.storage
-      .from("aigogo")
+      .from("ai-go-go")
       .upload(key, file);
 
     if (error)
@@ -36,10 +36,14 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
 
+    const { data: publicUrlData } = await supabase.storage
+      .from("ai-go-go")
+      .getPublicUrl(key);
+
     return NextResponse.json({
       image: {
         key: data?.id,
-        url: data?.fullPath,
+        url: publicUrlData?.publicUrl,
       },
     });
   } catch (error) {

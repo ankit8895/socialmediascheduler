@@ -11,8 +11,9 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, Plus } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Badge } from "../ui/8bit/badge";
+import { Button } from "../ui/8bit/button";
 import { Card, CardContent, CardHeader } from "../ui/8bit/card";
 import {
   DropdownMenu,
@@ -22,19 +23,9 @@ import {
 } from "../ui/8bit/dropdown-menu";
 import { toast } from "../ui/8bit/toast";
 import { Skeleton } from "../ui/8bitcn/skeleton";
-import IdeaDialog from "./idea-dialog";
 import GenerateIdeasPopover from "./generate-ideas-popover";
-import { Button } from "../ui/8bit/button";
-
-// type Idea = {
-//   id?: string;
-//   title: string;
-//   description?: string;
-//   tags?: string[];
-//   images?: ImageObject[];
-//   columnId?: string;
-//   sortOrder?: number;
-// };
+import IdeaDialog from "./idea-dialog";
+import { ScrollArea } from "../ui/8bit/scroll-area";
 
 type Column = {
   id: string;
@@ -49,11 +40,14 @@ const IdeaKanban = () => {
   const [selectedIdea, setSelectedIdea] = useState<IdeaType | null>(null);
   const [selectedColumnId, setSelectedColumnId] = useState<string>("");
 
+  // 1. ADDED: Ref to track the horizontal scroll container
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const { data: ideaData, isPending } = useQuery({
     queryKey: ["ideas"],
     queryFn: async () => {
       const res = await fetch("/api/idea");
-      if (!res.ok) throw new Error("Failed to feetch ideas");
+      if (!res.ok) throw new Error("Failed to fetch ideas");
       return res.json();
     },
   });
@@ -82,6 +76,12 @@ const IdeaKanban = () => {
       return res.json();
     },
     onSuccess: () => {
+      setColumns((prev) =>
+        prev.map((col) => ({
+          ...col,
+          ideas: col.ideas.filter((i) => !i.id?.startsWith("temp-")),
+        })),
+      );
       queryClient.invalidateQueries({ queryKey: ["ideas"] });
     },
     onError: (error) => {
@@ -167,7 +167,21 @@ const IdeaKanban = () => {
     }
   };
 
+  // 2. ADDED: Hide horizontal scrollbar the moment a drag is captured
+  const handleBeforeCapture = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.classList.remove("overflow-x-auto");
+      scrollContainerRef.current.classList.add("overflow-hidden");
+    }
+  };
+
   const handleDragEnd = (result: DropResult) => {
+    // 3. ADDED: Restore horizontal scrollbar when drag finishes
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.classList.remove("overflow-hidden");
+      scrollContainerRef.current.classList.add("overflow-x-auto");
+    }
+
     const { source, destination } = result;
     if (!destination) return;
     if (
@@ -202,7 +216,7 @@ const IdeaKanban = () => {
       const sourceIdeas = [...sourceColumn.ideas];
       const destIdeas = [...destinationColumn.ideas];
 
-      const [movedIdea] = sourceIdeas.splice(source.index + 1);
+      const [movedIdea] = sourceIdeas.splice(source.index, 1);
 
       movedIdea.sortOrder = destination.index;
       movedIdea.columnId = destination.droppableId;
@@ -254,17 +268,16 @@ const IdeaKanban = () => {
 
   return (
     <>
-      <div className="flex flex-col overflow-hidden">
+      <div className="flex flex-col overflow-hidden font-pixel">
         <header className="flex items-center justify-between border-b px-6 py-4">
           <div>
-            <h1 className="text-2xl font-semibold">Ideas</h1>
+            <h1 className="text-xl font-semibold">Ideas</h1>
             <p className="text-sm text-muted-foreground">
               Capture and organize your content ideas
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* GENERATEIDEA POPOVER */}
             <GenerateIdeasPopover onGenerated={handleGeneratedIdea} />
             <Button
               variant="outline"
@@ -299,11 +312,17 @@ const IdeaKanban = () => {
                 ))}
               </div>
             ) : (
-              <div className="h-full overflow-x-auto">
-                <DragDropContext onDragEnd={handleDragEnd}>
+              /* 4. ADDED: Attached the ref here to target the horizontal scroll parent */
+              <div ref={scrollContainerRef} className="h-full overflow-x-auto">
+                <DragDropContext
+                  onDragEnd={handleDragEnd}
+                  onBeforeCapture={
+                    handleBeforeCapture
+                  } /* 5. ADDED: Hooked into the capture phase */
+                >
                   <div style={{ height: "100%" }} className="flex gap-4 w-full">
                     {columns?.map((column) => (
-                      <div
+                      <ScrollArea
                         key={column.id}
                         className="shrink-0 w-70 flex flex-col h-full min-h-0 rounded-lg bg-[#f7f6f3] dark:bg-neutral-800/40 border p-3"
                       >
@@ -370,12 +389,18 @@ const IdeaKanban = () => {
                                                   {idea.images
                                                     .slice(0, 4)
                                                     .map((image, index) => (
-                                                      <Image
+                                                      <div
                                                         key={index}
-                                                        src={image.url}
-                                                        alt={idea.title}
-                                                        className="w-full h-12 rounded object-cover border"
-                                                      />
+                                                        className="relative border rounded w-full h-12"
+                                                      >
+                                                        <Image
+                                                          src={image.url}
+                                                          alt={idea.title}
+                                                          fill
+                                                          sizes="100vw"
+                                                          className="object-cover"
+                                                        />
+                                                      </div>
                                                     ))}
                                                 </div>
                                               )}
@@ -388,7 +413,7 @@ const IdeaKanban = () => {
                                                   </h4>
                                                 </div>
                                                 <DropdownMenu>
-                                                  <DropdownMenuTrigger>
+                                                  <DropdownMenuTrigger asChild>
                                                     <Button
                                                       size="icon"
                                                       variant="ghost"
@@ -448,10 +473,12 @@ const IdeaKanban = () => {
                                 <Plus className="h-4 w-4" />
                                 New Idea
                               </Button>
+
+                              {provided.placeholder}
                             </div>
                           )}
                         </Droppable>
-                      </div>
+                      </ScrollArea>
                     ))}
                   </div>
                 </DragDropContext>

@@ -89,8 +89,8 @@ const GenerateIdeasPopover = ({ onGenerated }: GenerateIdeasPopoverProps) => {
           Generate Ideas
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-100 p-4 shadow-lg" align="end">
-        {/* {!canUseAI && !isLoading && (
+      <PopoverContent className="w-120 p-4 shadow-lg" align="end">
+        {!canUseAI && !isLoading && (
           <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
             <p className="text-sm font-medium">
               AI idea generation requires an upgrade
@@ -102,7 +102,7 @@ const GenerateIdeasPopover = ({ onGenerated }: GenerateIdeasPopoverProps) => {
               to Pro or Premium to generate ideas with AI
             </p>
           </div>
-        )} */}
+        )}
 
         {step === 1 && (
           <div className="space-y-4">
@@ -122,6 +122,17 @@ const GenerateIdeasPopover = ({ onGenerated }: GenerateIdeasPopoverProps) => {
                   value={businessType}
                   onChange={(e) => setBusinessType(e.target.value)}
                   placeholder="e.g., fitness brand"
+                  disabled={!canUseAI}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">
+                  Target Audience
+                </label>
+                <Textarea
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  placeholder="e.g., busy professionals"
                   disabled={!canUseAI}
                 />
               </div>
@@ -157,13 +168,13 @@ const GenerateIdeasPopover = ({ onGenerated }: GenerateIdeasPopoverProps) => {
               </p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-72 overflow-y-auto">
               {generatedIdeas.map((idea, index) => (
-                <Button
+                <button
                   key={index}
                   onClick={() => setSelectedIdea(index)}
                   className={cn(
-                    "w-full text-left p-3 rounded-lg border transition-colors",
+                    "w-full text-left p-3 rounded-lg border transition-colors block",
                     selectedIdea === index
                       ? "border-primary bg-primary/5"
                       : "border-border hover:bg-muted/50",
@@ -181,14 +192,16 @@ const GenerateIdeasPopover = ({ onGenerated }: GenerateIdeasPopoverProps) => {
                       {selectedIdea === index && <Check className="h-3 w-3" />}
                     </div>
 
-                    <div className="flex flex-col gap-0.5 text-left">
-                      <span className="text-sm font-medium">{idea.title}</span>
+                    <div className="flex flex-col gap-0.5 text-left min-w-0">
+                      <span className="text-sm font-medium wrap-break-word">
+                        {idea.title}
+                      </span>
                       <span className="text-xs text-muted-foreground line-clamp-1">
                         {idea.description}
                       </span>
                     </div>
                   </div>
-                </Button>
+                </button>
               ))}
             </div>
 

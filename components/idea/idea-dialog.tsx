@@ -1,13 +1,16 @@
+import { cn } from "@/lib/utils";
 import { IdeaType } from "@/types/idea.type";
 import { ImageObject } from "@/types/post.type";
-import React, { useEffect, useState } from "react";
+import { Shapes } from "lucide-react";
+import { useEffect, useState } from "react";
+import ContentTextarea from "../content-textarea";
+import { Button } from "../ui/8bit/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "../ui/8bit/dialog";
-import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -15,11 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/8bit/select";
-import { Shapes } from "lucide-react";
-import { Input } from "../ui/8bit/input";
-import { Button } from "../ui/8bit/button";
 import { Spinner } from "../ui/8bit/spinner";
-import ContentTextarea from "../content-textarea";
 import { Textarea } from "../ui/8bit/textarea";
 
 type IdeaDialogProps = {
@@ -83,7 +82,7 @@ const IdeaDialog = ({
         <div className="flex flex-1 min-h-0">
           <div className="flex flex-1 flex-col min-w-0">
             <DialogHeader className="shrink-0 flex flex-row items-center justify-between px-5 py-4">
-              <DialogTitle className="text-base font-semibold">
+              <DialogTitle className="text-base font-semibold font-pixel">
                 {isEdit ? "Edit Idea" : "Create idea"}
               </DialogTitle>
 

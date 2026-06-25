@@ -6,7 +6,7 @@ export async function getSupabaseServerClient() {
   const clerkToken = await getToken();
 
   const supabaseUrl = process.env.SUPABASE_BASE_URL!;
-  const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY!;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY!;
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
     global: {
@@ -15,6 +15,15 @@ export async function getSupabaseServerClient() {
       },
     },
   });
+
+  return supabase;
+}
+
+export function getSupabaseStorageClient() {
+  const supabaseUrl = process.env.SUPABASE_BASE_URL!;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY!;
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   return supabase;
 }

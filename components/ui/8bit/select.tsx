@@ -18,7 +18,7 @@ import {
 
 import "@/components/ui/8bit/styles/retro.css";
 
-export const inputVariants = cva("", {
+export const SelectVariants = cva("", {
   variants: {
     font: {
       normal: "",
@@ -31,8 +31,9 @@ export const inputVariants = cva("", {
 });
 
 export interface BitSelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement>,
-    VariantProps<typeof inputVariants> {
+  extends
+    React.SelectHTMLAttributes<HTMLSelectElement>,
+    VariantProps<typeof SelectVariants> {
   asChild?: boolean;
 }
 
@@ -47,8 +48,9 @@ function SelectGroup({
 }
 
 interface BitSelectValueProps
-  extends React.ComponentProps<typeof SelectPrimitive.Value>,
-    VariantProps<typeof inputVariants> {
+  extends
+    React.ComponentProps<typeof SelectPrimitive.Value>,
+    VariantProps<typeof SelectVariants> {
   asChild?: boolean;
 }
 
@@ -64,8 +66,9 @@ function SelectValue({ ...props }: BitSelectValueProps) {
 }
 
 interface BitSelectTriggerProps
-  extends React.ComponentProps<typeof SelectPrimitive.Trigger>,
-    VariantProps<typeof inputVariants> {
+  extends
+    React.ComponentProps<typeof SelectPrimitive.Trigger>,
+    VariantProps<typeof SelectVariants> {
   asChild?: boolean;
 }
 
@@ -77,7 +80,7 @@ function SelectTrigger({ children, ...props }: BitSelectTriggerProps) {
       className={cn(
         "relative border-y-6 border-foreground dark:border-ring",
         className,
-        font !== "normal" && "retro"
+        font !== "normal" && "retro",
       )}
     >
       <ShadcnSelectTrigger
@@ -96,8 +99,9 @@ function SelectTrigger({ children, ...props }: BitSelectTriggerProps) {
 }
 
 export interface BitSelectContentProps
-  extends React.ComponentProps<typeof SelectPrimitive.Content>,
-    VariantProps<typeof inputVariants> {
+  extends
+    React.ComponentProps<typeof SelectPrimitive.Content>,
+    VariantProps<typeof SelectVariants> {
   asChild?: boolean;
 }
 
@@ -113,7 +117,7 @@ function SelectContent({
       className={cn(
         font !== "normal" && "retro",
         className,
-        "relative rounded-none border-4 border-foreground dark:border-ring -ml-1 mt-1"
+        "relative rounded-none border-4 border-foreground dark:border-ring -ml-1 mt-1",
       )}
       {...props}
     >
@@ -138,7 +142,7 @@ function SelectItem({
     <ShadcnSelectItem
       className={cn(
         className,
-        "rounded-none border-y-3 border-dashed border-ring/0 hover:border-foreground dark:hover:border-ring"
+        "rounded-none border-y-3 border-dashed border-ring/0 hover:border-foreground dark:hover:border-ring",
       )}
       {...props}
     >

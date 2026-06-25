@@ -9,11 +9,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const canUseAI = has({ plan: "pro" }) || has({ plan: "premium" });
-    // if (!canUseAI)
-    //   return NextResponse.json(
-    //     { error: "AI idea generation requires Pro or Premium plan" },
-    //     { status: 403 },
-    //   );
+    if (!canUseAI)
+      return NextResponse.json(
+        { error: "AI idea generation requires Pro or Premium plan" },
+        { status: 403 },
+      );
 
     const { businessType, targetAudience } = await req.json();
     if (!businessType || !targetAudience)

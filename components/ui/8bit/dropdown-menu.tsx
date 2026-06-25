@@ -48,7 +48,7 @@ function DropdownMenuSubTrigger({
     <ShadcnDropdownMenuSubTrigger
       className={cn(
         "hover:bg-transparent active:bg-transparent focus:bg-transparent rounded-none border-dashed border-y-4 border-transparent focus:border-foreground hover:border-foreground dark:focus:border-ring bg-transparent data-[state=open]:bg-transparent data-[state=open]:border-foreground dark:data-[state=open]:border-ring",
-        className
+        className,
       )}
       {...props}
     >
@@ -69,7 +69,7 @@ function DropdownMenuItem({
     <ShadcnDropdownMenuItem
       className={cn(
         "hover:bg-transparent active:bg-transparent focus:bg-transparent rounded-none border-dashed border-y-3 border-transparent focus:border-foreground hover:border-foreground dark:focus:border-ring bg-transparent",
-        className
+        className,
       )}
       {...props}
     >
@@ -116,7 +116,8 @@ function DropdownMenuSubContent({
 }
 
 export interface BitDropownMenuContentProps
-  extends React.ComponentProps<typeof DropdownMenuPrimitive.Content>,
+  extends
+    React.ComponentProps<typeof DropdownMenuPrimitive.Content>,
     VariantProps<typeof dropDownVariants> {}
 
 function DropdownMenuContent({

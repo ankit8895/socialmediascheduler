@@ -6,7 +6,7 @@ import { ChannelType } from "@/types/channel.type";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { Button } from "../ui/8bit/button";
 import {
@@ -19,9 +19,10 @@ import {
 import { Skeleton } from "../ui/8bit/skeleton";
 import { toast } from "../ui/8bit/toast";
 
-function ChannelTabContent() {
+const ChannelTabContent = () => {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { data: channelsData, isPending } = useQuery({
     queryKey: ["channels"],
@@ -51,7 +52,9 @@ function ChannelTabContent() {
     if (error) {
       toast(`Failed to connect to ${channelType}`);
     }
-  }, [queryClient, searchParams]);
+
+    router.replace("/settings", { scroll: false });
+  }, [queryClient, searchParams, router]);
 
   const connectMutation = useMutation({
     mutationFn: async (channelTypeId: string) => {
@@ -188,7 +191,7 @@ function ChannelTabContent() {
       </CardContent>
     </Card>
   );
-}
+};
 
 const ChannelsTab = () => {
   return (

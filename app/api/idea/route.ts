@@ -11,14 +11,14 @@ export async function GET() {
     const supabase = await getSupabaseServerClient();
 
     const [ideasRes, groupsRes] = await Promise.all([
-      await supabase
+      supabase
         .from("ideas")
         .select("*")
         .eq("user_id", userId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false }),
 
-      await supabase
+      supabase
         .from("idea_groups")
         .select("*")
         .order("created_at", { ascending: false }),
