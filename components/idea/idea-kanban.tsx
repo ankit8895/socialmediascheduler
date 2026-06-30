@@ -22,10 +22,10 @@ import {
   DropdownMenuTrigger,
 } from "../ui/8bit/dropdown-menu";
 import { toast } from "../ui/8bit/toast";
-import { Skeleton } from "../ui/8bitcn/skeleton";
 import GenerateIdeasPopover from "./generate-ideas-popover";
 import IdeaDialog from "./idea-dialog";
 import { ScrollArea } from "../ui/8bit/scroll-area";
+import { Skeleton } from "../ui/8bit/skeleton";
 
 type Column = {
   id: string;
@@ -165,6 +165,7 @@ const IdeaKanban = () => {
     if (!ideaId.startsWith("temp-")) {
       deleteIdeaMutation.mutate(ideaId);
     }
+    setShowIdeaDialog(false);
   };
 
   // 2. ADDED: Hide horizontal scrollbar the moment a drag is captured
@@ -339,7 +340,10 @@ const IdeaKanban = () => {
                             size="icon"
                             variant="ghost"
                             className="size-7"
-                            onClick={() => handleAddIdea(column.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddIdea(column.id);
+                            }}
                           >
                             <Plus className="w-4 h-4" />
                           </Button>
@@ -378,9 +382,10 @@ const IdeaKanban = () => {
                                             snapshot.isDragging &&
                                               "scale-95 rotate-1 shadow-lg",
                                           )}
-                                          onClick={() =>
-                                            handleEditIdea(idea, column.id)
-                                          }
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditIdea(idea, column.id);
+                                          }}
                                         >
                                           <CardContent>
                                             {idea.images &&
@@ -424,12 +429,13 @@ const IdeaKanban = () => {
                                                   </DropdownMenuTrigger>
                                                   <DropdownMenuContent>
                                                     <DropdownMenuItem
-                                                      onClick={() =>
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
                                                         handleEditIdea(
                                                           idea,
                                                           column.id,
-                                                        )
-                                                      }
+                                                        );
+                                                      }}
                                                     >
                                                       Edit
                                                     </DropdownMenuItem>
@@ -438,7 +444,8 @@ const IdeaKanban = () => {
                                                       disabled={
                                                         deleteIdeaMutation.isPending
                                                       }
-                                                      onSelect={() => {
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
                                                         handleDeleteIdea(
                                                           column.id,
                                                           idea.id || "",
@@ -467,7 +474,10 @@ const IdeaKanban = () => {
 
                               <Button
                                 variant={"ghost"}
-                                onClick={() => handleAddIdea(column.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddIdea(column.id);
+                                }}
                                 className="w-full border-none! h-12! mt-2.5"
                               >
                                 <Plus className="h-4 w-4" />
