@@ -24,7 +24,7 @@ const PreviewPanel = ({
 }) => {
   if (!channel) {
     return (
-      <div className="flex flex-1 h-full items-center justify-center text-sm text-muted-foreground">
+      <div className="flex flex-1 h-full items-center justify-center text-xs text-muted-foreground">
         Select a channel to preview
       </div>
     );

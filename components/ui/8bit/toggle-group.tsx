@@ -56,7 +56,7 @@ function ToggleGroupItem({ ...props }: BitToggleGroupItemProps) {
       className={cn(
         "relative transition-transform active:translate-x-1 active:translate-y-1",
         className,
-        font !== "normal" && "retro"
+        font !== "normal" && "retro",
       )}
       {...props}
     >

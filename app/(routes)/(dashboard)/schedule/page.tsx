@@ -21,7 +21,7 @@ const SchedulePageContent = () => {
   });
   const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full font-pixel">
       <header className="flex items-center justify-between px-6 pt-4 pb-2">
         <div>
           <h1 className="text-xl font-semibold">All Channels</h1>

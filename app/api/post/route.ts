@@ -1,14 +1,7 @@
 import { POST_STATUS } from "@/constants/post";
 import { getSupabaseServerClient } from "@/lib/supabase";
-import { ImageObject } from "@/types/post.type";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-
-type PostType = {
-  channelTypeId: string;
-  content: string;
-  images?: ImageObject[];
-};
 
 export async function GET(req: NextRequest) {
   try {
@@ -134,6 +127,13 @@ export async function POST(req: NextRequest) {
     if (!scheduledAt)
       return NextResponse.json(
         { error: "Scheduled at is required" },
+        { status: 400 },
+      );
+
+    const scheduledDate = new Date(scheduledAt);
+    if (scheduledDate < new Date())
+      return NextResponse.json(
+        { error: "Scheduled time must be in the future" },
         { status: 400 },
       );
 
