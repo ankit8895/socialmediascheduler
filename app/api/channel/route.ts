@@ -4,58 +4,61 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    // 1. Authenticate the user via Clerk
     const { userId } = await auth();
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
 
+    const filter = req.nextUrl.searchParams.get("filter");
+
     const supabase = await getSupabaseServerClient();
 
-    // 2. Fetch channel types AND the user's connected channels in ONE query!
-    const { data: channelTypes, error } = await supabase
-      .from("channel_types")
-      .select(`*, user_channels (*)`)
-      .order("created_at", { ascending: true });
+    const [typesRes, userChannelsRes] = await Promise.all([
+      supabase
+        .from("channel_types")
+        .select("*")
+        .order("created_at", { ascending: true }),
 
-    if (error) {
-      return NextResponse.json(
-        { message: "Database error", error: error },
-        { status: 500 },
-      );
-    }
+      supabase.from("user_channels").select("*").eq("user_id", userId),
+    ]);
 
-    // 3. Format the data to match what the frontend UI expects
-    const formattedChannels = channelTypes.map((type) => {
-      // user_channels will be an array of 0 or 1 item because of our unique constraint
-      const userChannel = type.user_channels[0];
+    if (typesRes.error || userChannelsRes.error)
+      return new NextResponse("Internal Server Error", { status: 500 });
 
+    const userChannelMap = new Map(
+      userChannelsRes.data.map((channel) => [channel.channel_type_id, channel]),
+    );
+
+    let channels = (typesRes.data || []).map((channel_type) => {
+      const userChannel = userChannelMap.get(channel_type.id);
       return {
-        id: type.id,
-        type: type.type,
-        name: type.name,
-        color: type.color,
-        characterLimit: type.character_limit,
-
-        // If the user has connected this channel, grab their specific data
-        userChannelId: userChannel?.id || null,
-        handle: userChannel?.handle || null,
-        profileImageUrl: userChannel?.profile_image || null,
-        connected: !!userChannel?.is_connected,
+        id: channel_type.id,
+        type: channel_type.type,
+        name: channel_type.name,
+        color: channel_type.color,
+        character_limit: channel_type.character_limit,
+        user_channel_id: userChannel?.id ?? null,
+        handle: userChannel?.handle ?? null,
+        profile_image: userChannel?.profile_image ?? null,
+        profile_url: userChannel?.profile_url ?? null,
+        connected: userChannel?.is_connected ?? false,
       };
     });
 
-    // 4. Calculate counts for the sidebar UI
-    const totalChannels = formattedChannels.length;
-    const connectedCount = formattedChannels.filter((c) => c.connected).length;
+    const totalChannels = typesRes.data?.length || 0;
+    const connectedCount = channels.filter(
+      (channel) => channel.connected,
+    ).length;
+
+    if (filter === "connected")
+      channels = channels.filter((channel) => channel.connected);
+    else if (filter === "unconnected")
+      channels = channels.filter((channel) => !channel.connected);
 
     return NextResponse.json({
-      channels: formattedChannels,
+      channels,
       totalChannels,
       connectedCount,
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error", error: error },
-      { status: 500 },
-    );
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

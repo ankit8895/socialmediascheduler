@@ -4,6 +4,7 @@ import { getChannelIcon } from "@/constants/channels";
 import { POST_STATUS, PostStatus } from "@/constants/post";
 import { cn } from "@/lib/utils";
 import { ChannelType } from "@/types/channel.type";
+import { IdeaType } from "@/types/idea.type";
 import { ImageObject } from "@/types/post.type";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -44,6 +45,12 @@ type PropsType = {
 type ChannelContent = {
   text: string;
   images: ImageObject[];
+};
+
+type PostType = {
+  channelTypeId: string;
+  content: string;
+  images?: ImageObject[];
 };
 
 type ActionTabType = "ideas" | "ai" | "preview";
@@ -87,7 +94,7 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
   const channels = useMemo(() => {
     if (isPending) return [];
 
-    return (channelsData || []).map((channel: any) => ({
+    return (channelsData || []).map((channel: ChannelType) => ({
       ...channel,
       icon: getChannelIcon(channel.type),
     })) as ChannelType[];
@@ -119,7 +126,7 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
       scheduledAt,
       status,
     }: {
-      posts: any[];
+      posts: PostType[];
       scheduledAt: string;
       status?: PostStatus;
     }) => {
@@ -141,7 +148,7 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
       queryClient.invalidateQueries({ queryKey: ["posts", "totals"] });
       handleOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast("Failed to save post");
     },
   });
@@ -190,7 +197,7 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
     setActivePreview(value);
   };
 
-  const handleIdeaSelect = (idea: any) => {
+  const handleIdeaSelect = (idea: IdeaType) => {
     if (!hasConnectedChannel) {
       toast("Connect at least one channel to add idea");
       return;
@@ -234,7 +241,15 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
       return;
     }
 
+    if (!timeSlot || !date) {
+      toast("Please select a date and time");
+      return;
+    }
+
     const parsedTime = parse(timeSlot, "h:mm a", new Date());
+    if (isNaN(parsedTime.getTime())) {
+      toast("Invalid time selected");
+    }
     const scheduleAt = set(date || new Date(), {
       hours: parsedTime.getHours(),
       minutes: parsedTime.getMinutes(),
@@ -328,7 +343,9 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
         <div>
           <DialogHeader className="px-8 py-4 border-b">
             <div className="flex items-center justify-between">
-              <DialogTitle className="font-semibold">Create Post</DialogTitle>
+              <DialogTitle className="font-semibold font-pixel">
+                Create Post
+              </DialogTitle>
               <div className="flex items-center gap-px">
                 {rightTabs.map((tab) => (
                   <Button
@@ -349,7 +366,7 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
 
           <div className="w-full flex flex-1 min-w-0 overflow-hidden h-145">
             {/* LEFT - CHANNEL LIST */}
-            <div className="flex flex-col w-75 pb-5">
+            <div className="flex flex-1 flex-col min-w-0 w-75 pb-5">
               <div className="channel--sector py-5 px-8">
                 {channels?.length > 0 && !isPending && (
                   <button
@@ -397,7 +414,6 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
                                     toast("Please connect the channel first");
                                     return;
                                   }
-                                  // TODO: IMPLEMENT CHANNEL SELECTION LOGIC
                                   toggleChannel(
                                     channel.id,
                                     channel.character_limit,
@@ -415,8 +431,7 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
                             <TooltipContent>
                               Preview {channel.name}
                               {!isConnected && (
-                                <span className="text-primary">
-                                  {" "}
+                                <span className="text-xs">
                                   → Connect Channel
                                 </span>
                               )}
@@ -441,6 +456,7 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
                       onImagesChange={(images) =>
                         handleGlobalContentChange(globalContent.text, images)
                       }
+                      className="border-0 border-none focus-visible:ring-0 shadow-none focus-visible:ring-offset-0"
                     />
                   </div>
                 ) : (

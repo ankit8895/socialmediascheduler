@@ -2,7 +2,10 @@
 
 import { ImageObject } from "@/types/post.type";
 import { useQuery } from "@tanstack/react-query";
-import React, { useMemo, useState } from "react";
+import Image from "next/image";
+import { useMemo, useState } from "react";
+import { Badge } from "../ui/8bit/badge";
+import { Card, CardContent, CardHeader } from "../ui/8bit/card";
 import {
   Select,
   SelectContent,
@@ -10,10 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/8bit/select";
-import { Card, CardContent, CardHeader } from "../ui/8bit/card";
 import { Skeleton } from "../ui/8bit/skeleton";
-import Image from "next/image";
-import { Badge } from "../ui/8bit/badge";
 
 interface Idea {
   id: string;
@@ -46,7 +46,9 @@ const IdeasList = ({ onSelect }: IdeasListProps) => {
     },
   });
 
-  const groups: IdeaGroup[] = data?.groups ?? [];
+  const groups = useMemo<IdeaGroup[]>(() => {
+    return data?.groups ?? [];
+  }, [data?.groups]);
 
   const ideas = useMemo(() => {
     return groups.flatMap((group) =>
