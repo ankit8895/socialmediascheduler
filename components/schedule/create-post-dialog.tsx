@@ -40,6 +40,7 @@ import ScheduleDatePicker from "./schedule-date-picker";
 type PropsType = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  selectedDate?: Date | null;
 };
 
 type ChannelContent = {
@@ -61,7 +62,7 @@ const rightTabs = [
   { id: "preview" as ActionTabType, label: "Preview", icon: ScanEye },
 ];
 
-const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
+const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
   const queryClient = useQueryClient();
   const [globalContent, setGlobalContent] = useState<ChannelContent>({
     text: "",
@@ -75,7 +76,9 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [activePreview, setActivePreview] = useState<string>("");
   const [activeAccordion, setActiveAccordion] = useState<string>("");
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(
+    selectedDate || new Date(),
+  );
   const [timeSlot, setTimeSlot] = useState<string>("");
 
   const { data, isPending } = useQuery({
@@ -99,6 +102,12 @@ const CreatePostDialog = ({ open, onOpenChange }: PropsType) => {
       icon: getChannelIcon(channel.type),
     })) as ChannelType[];
   }, [isPending, channelsData]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   useEffect(() => {
     if (channels.length > 0 && Object.keys(channelContent).length === 0) {
