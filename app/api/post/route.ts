@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       .order("scheduled_at", { ascending: false });
 
     if (status) postQuery.eq("status", status);
-    if (channelIds.length > 0) postQuery.in("channel_type_id", channelIds);
+    if (channelIds.length > 0) postQuery.in("user_channel_id", channelIds);
 
     const { data: posts, error } = await postQuery;
     if (error) throw error;
