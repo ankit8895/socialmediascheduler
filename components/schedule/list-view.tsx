@@ -1,11 +1,6 @@
 import { PostType } from "@/types/post.type";
 import { useQuery } from "@tanstack/react-query";
-import { useQueryState } from "nuqs";
-import React, { useState } from "react";
-import { Tabs, TabsList, TabsTrigger } from "../ui/8bit/tabs";
-import { Badge } from "../ui/8bit/badge";
-import ScheduleToolbar from "./schedule-toolbar";
-import { Skeleton } from "../ui/8bit/skeleton";
+import { format, formatDistanceToNow, parseISO } from "date-fns";
 import {
   AlarmClockCheck,
   ExternalLink,
@@ -14,14 +9,18 @@ import {
   Plus,
   Send,
 } from "lucide-react";
-import { Button } from "../ui/8bit/button";
-import { format, formatDistanceToNow, parseISO } from "date-fns";
-import { Card, CardContent, CardFooter } from "../ui/8bit/card";
-import ChannelAvatar from "../channel-avatar";
 import Image from "next/image";
 import Link from "next/link";
+import { useQueryState } from "nuqs";
+import { useState } from "react";
+import ChannelAvatar from "../channel-avatar";
+import { Badge } from "../ui/8bit/badge";
+import { Button } from "../ui/8bit/button";
+import { Card, CardContent, CardFooter } from "../ui/8bit/card";
+import { Skeleton } from "../ui/8bit/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "../ui/8bit/tabs";
 import EditPostDialog from "./edit-post-dialog";
-import { PostStatus } from "@/constants/post";
+import ScheduleToolbar from "./schedule-toolbar";
 
 type TabType = "draft" | "queue" | "published" | "failed";
 

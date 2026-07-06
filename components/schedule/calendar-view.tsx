@@ -4,10 +4,10 @@ import { PostType } from "@/types/post.type";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
-import PostCalendar from "./post-calendar";
-import ScheduleToolbar from "./schedule-toolbar";
 import CreatePostDialog from "./create-post-dialog";
 import EditPostDialog from "./edit-post-dialog";
+import PostCalendar from "./post-calendar";
+import ScheduleToolbar from "./schedule-toolbar";
 
 type ViewType = "month" | "week";
 

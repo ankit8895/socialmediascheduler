@@ -20,6 +20,7 @@ import {
 } from "../ui/8bit/select";
 import { Spinner } from "../ui/8bit/spinner";
 import { Textarea } from "../ui/8bit/textarea";
+import AIAssistant from "../schedule/ai-assistant";
 
 type IdeaDialogProps = {
   open: boolean;
@@ -143,12 +144,12 @@ const IdeaDialog = ({
           {showAI && (
             <div className="w-85 shrink-0 border-l border-border bg-muted/30">
               <div className="p-4">
-                {/* <AIAssistant
+                <AIAssistant
                   content={`${title}\n\n${description}`}
                   onGenerate={(content) => {
                     setDescription(content);
                   }}
-                /> */}
+                />
               </div>
             </div>
           )}

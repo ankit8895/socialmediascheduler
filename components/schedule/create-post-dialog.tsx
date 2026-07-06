@@ -36,6 +36,7 @@ import { ButtonGroup } from "../ui/8bitcn/button-group";
 import IdeasList from "./ideas-list";
 import PreviewPanel from "./preview";
 import ScheduleDatePicker from "./schedule-date-picker";
+import AIAssistant from "./ai-assistant";
 
 type PropsType = {
   open: boolean;
@@ -601,29 +602,29 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
                 <div className="py-4 flex-1 flex-col h-full">
                   {selectedRightTab === "ai" && (
                     <div className="px-6">
-                      {/* <AIAssistant
-                      content={
-                        channelContent[activeAccordion]?.text ||
-                        globalContent?.text ||
-                        ""
-                      }
-                      channelId={activeAccordion}
-                      onGenerate={(content: any) => {
-                        if (globalContent?.text) {
-                          setGlobalContent((prev) => ({
-                            ...prev,
-                            text: content,
-                          }));
+                      <AIAssistant
+                        content={
+                          channelContent[activeAccordion]?.text ||
+                          globalContent?.text ||
+                          ""
                         }
-                        setChannelContent((prev) => ({
-                          ...prev,
-                          [activeAccordion]: {
-                            ...prev[activeAccordion],
-                            text: content,
-                          },
-                        }));
-                      }}
-                    /> */}
+                        channelId={activeAccordion}
+                        onGenerate={(content: any) => {
+                          if (globalContent?.text) {
+                            setGlobalContent((prev) => ({
+                              ...prev,
+                              text: content,
+                            }));
+                          }
+                          setChannelContent((prev) => ({
+                            ...prev,
+                            [activeAccordion]: {
+                              ...prev[activeAccordion],
+                              text: content,
+                            },
+                          }));
+                        }}
+                      />
                     </div>
                   )}
 

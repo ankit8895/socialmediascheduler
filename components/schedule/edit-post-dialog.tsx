@@ -1,31 +1,28 @@
 "use client";
 
+import { getChannelIcon } from "@/constants/channels";
 import { POST_STATUS, PostStatus } from "@/constants/post";
+import { cn } from "@/lib/utils";
 import { ChannelType } from "@/types/channel.type";
 import { ImageObject } from "@/types/post.type";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Lightbulb, ScanEye, Wand2 } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { toast } from "../ui/8bit/toast";
-import { getChannelIcon } from "@/constants/channels";
 import { parse, set } from "date-fns";
+import { Lightbulb, ScanEye, Wand2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import ContentTextarea from "../content-textarea";
+import { Button } from "../ui/8bit/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../ui/8bit/dialog";
-import { cn } from "@/lib/utils";
-import { Button } from "../ui/8bit/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import ContentTextarea from "../content-textarea";
+import { toast } from "../ui/8bit/toast";
 import IdeasList from "./ideas-list";
 import PreviewPanel from "./preview";
-import { Spinner } from "../ui/8bit/spinner";
-import { ButtonGroup } from "../ui/8bitcn/button-group";
-import ScheduleDatePicker from "./schedule-date-picker";
+import AIAssistant from "./ai-assistant";
 
 interface EditPostDialogProps {
   open: boolean;
@@ -237,13 +234,13 @@ const EditPostDialog = ({ open, onOpenChange, post }: EditPostDialogProps) => {
                 <div className="py-4 flex-1 h-full flex flex-col">
                   {selectedRightTab === "ai" && (
                     <div className="px-6 flex flex-col">
-                      {/* <AIAssistant
+                      <AIAssistant
                         content={content}
                         channelId={post?.channel?.id}
                         onGenerate={(generatedText) => {
                           setContent(generatedText);
                         }}
-                      /> */}
+                      />
                     </div>
                   )}
 
