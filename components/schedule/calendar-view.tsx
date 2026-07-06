@@ -7,6 +7,7 @@ import { useState } from "react";
 import PostCalendar from "./post-calendar";
 import ScheduleToolbar from "./schedule-toolbar";
 import CreatePostDialog from "./create-post-dialog";
+import EditPostDialog from "./edit-post-dialog";
 
 type ViewType = "month" | "week";
 
@@ -95,6 +96,30 @@ const CalendarView = () => {
           />
         </div>
       </div>
+
+      <EditPostDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        post={
+          selectedPostForEdit
+            ? {
+                id: selectedPostForEdit.id,
+                content: selectedPostForEdit.content,
+                images: selectedPostForEdit.images || [],
+                scheduledDate: selectedPostForEdit.scheduled_at,
+                userChannelId: selectedPostForEdit.user_channel_id || "",
+                channel: selectedPostForEdit.user_channels?.channel_types
+                  ? {
+                      ...selectedPostForEdit.user_channels.channel_types,
+                      profile_image:
+                        selectedPostForEdit.user_channels.profile_image,
+                      handle: selectedPostForEdit.user_channels.handle,
+                    }
+                  : null,
+              }
+            : null
+        }
+      />
 
       <CreatePostDialog
         open={isCreateDialogOpen}
