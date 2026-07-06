@@ -1,6 +1,7 @@
 import { POST_STATUS } from "@/constants/post";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
+import { Key } from "lucide-react";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -15,6 +16,7 @@ export async function GET(req: NextRequest) {
       .getAll("channels")
       .flatMap((channel) => channel.split(","))
       .filter(Boolean);
+    const groupByDate = searchParams.get("group_by_date") === "true";
 
     const supabase = await getSupabaseServerClient();
 
@@ -32,7 +34,33 @@ export async function GET(req: NextRequest) {
     const { data: posts, error } = await postQuery;
     if (error) throw error;
 
-    return NextResponse.json({ posts: posts });
+    if (!groupByDate) return NextResponse.json({ posts: posts ?? [] });
+
+    // {date: {label: "",posts: []}}
+    const groupMap = new Map<string, { label: string; posts: typeof posts }>();
+
+    (posts ?? []).forEach((post) => {
+      const date = new Date(post.scheduled_at);
+
+      const key = [
+        date.getFullYear(),
+        // 3 -> 03
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      if (!groupMap.has(key)) {
+        groupMap.set(key, { label: formatDayLabel(date), posts: [] });
+      }
+      groupMap.get(key)!.posts.push(post);
+    });
+
+    const groupPosts = Array.from(groupMap.entries()).map(([key, value]) => ({
+      key,
+      value,
+    }));
+
+    return NextResponse.json({ groupPosts });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
@@ -167,4 +195,20 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+function formatDayLabel(date: Date) {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return "Today";
+  }
+
+  if (date.toDateString() === tomorrow.toDateString()) {
+    return "Tomorrow";
+  }
+
+  return date.toLocaleDateString();
 }

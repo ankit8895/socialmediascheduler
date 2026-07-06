@@ -52,7 +52,11 @@ const SchedulePageContent = () => {
       </header>
 
       <div className="flex-1 overflow-hidden">
-        {activeView === "list" ? <ListView /> : <CalendarView />}
+        {activeView === "list" ? (
+          <ListView setCreatePostModalOpen={setCreatePostModalOpen} />
+        ) : (
+          <CalendarView />
+        )}
       </div>
 
       <CreatePostDialog
