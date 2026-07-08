@@ -199,3 +199,16 @@ const PROVIDERS: Record<ChannelTypeEnum, OAuthProvider> = {
 export function getOAuthProvider(type: ChannelTypeEnum) {
   return PROVIDERS[type];
 }
+
+export async function refreshOauthToken(
+  type: ChannelTypeEnum,
+  refreshToken: string,
+  redirectUri: string,
+) {
+  const provider = getOAuthProvider(type);
+  if (!provider.refreshToken) {
+    throw new Error("Refresh token not supported for this provider");
+  }
+  const result = await provider.refreshToken({ refreshToken, redirectUri });
+  return result;
+}

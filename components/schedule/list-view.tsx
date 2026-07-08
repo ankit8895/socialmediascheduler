@@ -1,5 +1,5 @@
 import { PostType } from "@/types/post.type";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 import {
   AlarmClockCheck,
@@ -21,6 +21,8 @@ import { Skeleton } from "../ui/8bit/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "../ui/8bit/tabs";
 import EditPostDialog from "./edit-post-dialog";
 import ScheduleToolbar from "./schedule-toolbar";
+import { toast } from "../ui/8bit/toast";
+import { Spinner } from "../ui/8bit/spinner";
 
 type TabType = "draft" | "queue" | "published" | "failed";
 
@@ -35,6 +37,7 @@ const ListView = ({
 }: {
   setCreatePostModalOpen: (open: boolean) => void;
 }) => {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useQueryState("status", {
     defaultValue: "draft",
   });
@@ -77,6 +80,26 @@ const ListView = ({
     },
   });
 
+  const publishPostMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const res = await fetch(`/api/post/${postId}/publish`, {
+        method: "POST",
+      });
+
+      if (!res.ok) throw new Error("Failed to publish post");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast("Post processing...");
+      queryClient.invalidateQueries({
+        queryKey: ["posts", activeTab, channelIds],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["posts", "totals", channelIds],
+      });
+    },
+  });
+
   const groupPosts = (data?.groupPosts || []) as GroupPostType[];
 
   const totalDrafts = totalPosts?.totalDrafts || 0;
@@ -102,7 +125,10 @@ const ListView = ({
     setIsEditDialogOpen(true);
   };
 
-  const handlePublishNow = (post: PostType) => {};
+  const handlePublishNow = (post: PostType) => {
+    if (publishPostMutation.isPending) return;
+    publishPostMutation.mutate(post.id);
+  };
   return (
     <>
       <div className="flex flex-col h-full pt-3">
@@ -280,9 +306,16 @@ const ListView = ({
                                       {post.status === "draft" && (
                                         <Button
                                           variant={"outline"}
+                                          disabled={
+                                            publishPostMutation.isPending
+                                          }
                                           onClick={() => handlePublishNow(post)}
                                         >
-                                          <Send className="size-4" />
+                                          {publishPostMutation.isPending ? (
+                                            <Spinner />
+                                          ) : (
+                                            <Send className="size-4" />
+                                          )}
                                           Publish Now
                                         </Button>
                                       )}
