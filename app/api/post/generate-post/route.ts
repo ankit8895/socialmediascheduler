@@ -1,12 +1,18 @@
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { askAI, Message } from "@/services/openrouter";
-import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const ACTIONS = ["generate", "rephrase", "shorten", "expand"] as const;
 type ActionType = (typeof ACTIONS)[number];
 
-export async function POST(req: NextResponse) {
+export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+
+    if (!userId)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { action, content = "", prompt = "", channelId } = await req.json();
 
     if (!ACTIONS.includes(action as ActionType))
