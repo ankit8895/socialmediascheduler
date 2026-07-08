@@ -4,6 +4,7 @@ import { ImageObject, PostType } from "@/types/post.type";
 import { decrypt, encrypt } from "@/lib/encryption";
 import { refreshOauthToken } from "@/lib/social-oauth";
 import { ChannelTypeEnum } from "@/constants/channels";
+import { Logger } from "inngest";
 
 type DuePost = {
   id: string;
@@ -241,7 +242,7 @@ async function publishToTwitter({
   content: string;
   handle: string | undefined | null;
   images: ImageObject[] | undefined;
-  logger: any;
+  logger: Logger;
 }) {
   const mediaIds = images?.length
     ? await uploadImagesToTwitter({ accessToken, images, logger })
@@ -289,7 +290,7 @@ async function uploadImagesToTwitter({
 }: {
   accessToken: string;
   images: ImageObject[];
-  logger: any;
+  logger: Logger;
 }) {
   const mediaIds: string[] = [];
   for (const image of images) {
@@ -364,7 +365,7 @@ async function publishToLinkedIn({
   text: string;
   authorId?: string | null;
   images?: { url: string; key: string }[];
-  logger: any;
+  logger: Logger;
 }) {
   if (!authorId) throw new Error("Missing LinkedIn provider account id");
   const imageUrn = images?.[0]?.url

@@ -1,7 +1,6 @@
 import { POST_STATUS } from "@/constants/post";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
-import { Key } from "lucide-react";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -40,18 +39,10 @@ export async function GET(req: NextRequest) {
     const groupMap = new Map<string, { label: string; posts: typeof posts }>();
 
     (posts ?? []).forEach((post) => {
-      const date = new Date(post.scheduled_at);
+      const key = post.scheduled_at.slice(0, 10);
+      if (!groupMap.has(key))
+        groupMap.set(key, { label: formatDayLabel(key), posts: [] });
 
-      const key = [
-        date.getFullYear(),
-        // 3 -> 03
-        String(date.getMonth() + 1).padStart(2, "0"),
-        String(date.getDate()).padStart(2, "0"),
-      ].join("-");
-
-      if (!groupMap.has(key)) {
-        groupMap.set(key, { label: formatDayLabel(date), posts: [] });
-      }
       groupMap.get(key)!.posts.push(post);
     });
 
@@ -197,18 +188,22 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function formatDayLabel(date: Date) {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+function formatDayLabel(utcDateKey: string): string {
+  const todayKey = new Date().toISOString().slice(0, 10);
 
-  if (date.toDateString() === today.toDateString()) {
-    return "Today";
-  }
+  const tomorrowDate = new Date();
+  tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
+  const tomorrowKey = tomorrowDate.toISOString().slice(0, 10);
 
-  if (date.toDateString() === tomorrow.toDateString()) {
-    return "Tomorrow";
-  }
+  if (utcDateKey === todayKey) return "Today";
+  if (utcDateKey === tomorrowKey) return "Tomorrow";
 
-  return date.toLocaleDateString();
+  // Display in a readable format, explicitly UTC
+  const [year, month, day] = utcDateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
