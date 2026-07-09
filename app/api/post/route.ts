@@ -62,11 +62,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId, has } = await auth();
     if (!userId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { posts, scheduledAt, status } = await req.json();
+    const supabase = await getSupabaseServerClient();
 
     if (status !== undefined && status !== POST_STATUS.DRAFT)
       return NextResponse.json(
@@ -94,6 +95,16 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
 
+    const isPaidPlan = has({ plan: "pro" }) || has({ plan: "premium" });
+    if (!isPaidPlan) {
+      const canCreatePost = await checkCreatePostLimit(supabase, userId);
+      if (!canCreatePost)
+        return NextResponse.json(
+          { error: "You have reached your post limit, upgrade" },
+          { status: 403 },
+        );
+    }
+
     const invalidPost = normalizedPosts.find((post) => !post.content);
     if (invalidPost)
       return NextResponse.json(
@@ -105,7 +116,6 @@ export async function POST(req: NextRequest) {
       ...new Set(normalizedPosts.map((post) => post.channelTypeId)),
     ];
 
-    const supabase = await getSupabaseServerClient();
     const { data: userChannels, error: userChannelsError } = await supabase
       .from("user_channels")
       .select("id,channel_type_id")
@@ -186,6 +196,20 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+async function checkCreatePostLimit(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>["supabase"],
+  userId: string,
+) {
+  const { count, error } = await supabase
+    .from("scheduled_posts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if (error) throw error;
+
+  return (count ?? 0) < 4;
 }
 
 function formatDayLabel(utcDateKey: string): string {
