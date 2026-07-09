@@ -2,6 +2,7 @@
 
 import ChannelAvatar from "@/components/channel-avatar";
 import Logo from "@/components/logo";
+import CreatePostDialog from "@/components/schedule/create-post-dialog";
 import {
   Avatar,
   AvatarFallback,
@@ -47,6 +48,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const mainNav = [
   { name: "Ideas", href: "/ideas", icon: Lightbulb },
@@ -59,6 +61,7 @@ const AppSidebar = () => {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { user } = useUser();
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState<boolean>(false);
   const { openUserProfile, signOut } = useClerk();
 
   const { data: channelsData, isPending } = useQuery({
@@ -114,194 +117,211 @@ const AppSidebar = () => {
   };
 
   return (
-    <Sidebar collapsible="icon" className="font-pixel">
-      <SidebarHeader className={cn("p-4", isCollapsed && "p-2")}>
-        <div className="flex items-center justify-between">
-          <Logo hideName={isCollapsed} />
-          <SidebarTrigger className="hidden md:flex -mx-8 mb-0" />
-        </div>
-        <Button className="mt-4 w-full" size={isCollapsed ? "icon" : "lg"}>
-          <Plus className="size-4" />
-          {!isCollapsed && <span>New Post</span>}
-        </Button>
-      </SidebarHeader>
-      <SidebarContent className={cn(!isCollapsed && "px-2")}>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainNav.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
-                    <Link href={item.href}>
-                      <item.icon className="size-4" />
-                      <span className="text-[14.5px] font-pixel">
-                        {item.name}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* CONNECTED CHANNELS */}
-        {connectedChannels.length > 0 && (
-          <SidebarGroup className={cn(isCollapsed && "px-1")}>
-            <SidebarGroupLabel className="text-sm">Channels</SidebarGroupLabel>
+    <>
+      <Sidebar collapsible="icon" className="font-pixel">
+        <SidebarHeader className={cn("p-4", isCollapsed && "p-2")}>
+          <div className="flex items-center justify-between">
+            <Logo hideName={isCollapsed} />
+            <SidebarTrigger className="hidden md:flex -mx-8 mb-0" />
+          </div>
+          <Button
+            className="mt-4 w-full"
+            size={isCollapsed ? "icon" : "lg"}
+            onClick={() => setIsCreatePostOpen(true)}
+          >
+            <Plus className="size-4" />
+            {!isCollapsed && <span>New Post</span>}
+          </Button>
+        </SidebarHeader>
+        <SidebarContent className={cn(!isCollapsed && "px-2")}>
+          <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                {connectedChannels.map((channel: ChannelType) => {
-                  const url = getChannelUrl(channel.type);
-                  return (
-                    <SidebarMenuItem key={channel.id}>
-                      <SidebarMenuButton asChild>
-                        <Button className="w-full flex items-center gap-2">
-                          <Link
-                            href={`${url}/${channel.handle}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="w-full relative block items-center gap-2"
-                          >
-                            <ChannelAvatar
-                              size="sm"
-                              className="w-full flex items-center gap-2"
-                              type={channel.type}
-                              color={channel.color}
-                              profileImage={channel.profile_image}
-                              name={
-                                !isCollapsed
-                                  ? channel.handle || channel.name
-                                  : ""
-                              }
-                            />
-                          </Link>
-                        </Button>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
+                {mainNav.map((item) => (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.href}
+                    >
+                      <Link href={item.href}>
+                        <item.icon className="size-4" />
+                        <span className="text-[14.5px] font-pixel">
+                          {item.name}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
 
-        {/* UNCONNECTED CHANNELS */}
-        <SidebarGroup className={cn(isCollapsed && "px-1")}>
-          <SidebarGroupLabel className="text-xs">
-            Connect Channels
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {isPending ? (
-                <div className="flex flex-col gap-2">
-                  <Skeleton className="h-8 w-full bg-secondary" />
-                  <Skeleton className="h-8 w-full bg-secondary" />
-                  <Skeleton className="h-8 w-full bg-secondary" />
-                  <Skeleton className="h-8 w-full bg-secondary" />
-                </div>
-              ) : (
-                <>
-                  {limitedChannels.map((channel: ChannelType) => {
-                    const icon = getChannelIcon(channel.type);
+          {/* CONNECTED CHANNELS */}
+          {connectedChannels.length > 0 && (
+            <SidebarGroup className={cn(isCollapsed && "px-1")}>
+              <SidebarGroupLabel className="text-sm">
+                Channels
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {connectedChannels.map((channel: ChannelType) => {
+                    const url = getChannelUrl(channel.type);
                     return (
                       <SidebarMenuItem key={channel.id}>
-                        <SidebarMenuButton
-                          asChild
-                          tooltip={`Connect ${channel.name}`}
-                        >
-                          <Button
-                            variant="ghost"
-                            className="w-full flex items-center justify-start gap-2 mt-0.5 "
-                            onClick={() => handleConnect(channel.id)}
-                            disabled={connectMutation.isPending}
-                          >
-                            <span>
-                              <div className="relative">
-                                {icon ? (
-                                  <HugeiconsIcon
-                                    icon={icon}
-                                    color="currentColor"
-                                    style={{ background: channel.color }}
-                                    className="text-white! size-6! p-1 rounded-sm"
-                                  />
-                                ) : null}
-
-                                <div
-                                  className={`absolute -right-1 bottom-0 p-0.5 bg-white dark:bg-background rounded-xs`}
-                                >
-                                  <HugeiconsIcon
-                                    icon={PlusSignIcon}
-                                    className="size-2!"
-                                  />
-                                </div>
-                              </div>
-                            </span>
-                            <span className="truncate">{channel.name}</span>
+                        <SidebarMenuButton asChild>
+                          <Button className="w-full flex items-center gap-2">
+                            <Link
+                              href={`${url}/${channel.handle}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="w-full relative block items-center gap-2"
+                            >
+                              <ChannelAvatar
+                                size="sm"
+                                className="w-full flex items-center gap-2"
+                                type={channel.type}
+                                color={channel.color}
+                                profileImage={channel.profile_image}
+                                name={
+                                  !isCollapsed
+                                    ? channel.handle || channel.name
+                                    : ""
+                                }
+                              />
+                            </Link>
                           </Button>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
                   })}
-                </>
-              )}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    asChild
-                    className="w-full justify-start mt-2"
-                  >
-                    <Link href="/settings" className="w-full flex gap-2">
-                      <PlusCircleIcon className="size-4" />
-                      <span className="text-sm">More Channels</span>
-                    </Link>
-                  </Button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        <div className="mb-3 text-xs text-muted-foreground">
-          <span>
-            {connectedCount}/{totalChannels} channels connected
-          </span>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center cursor-pointer">
-              <Avatar className="h-8 w-8 flex gap-2">
-                <AvatarImage
-                  src={user?.imageUrl}
-                  alt={user?.fullName || "User"}
-                  className="rendering-pixelated"
-                />
-                <AvatarFallback>
-                  {user?.firstName?.charAt(0) || "U"}
-                </AvatarFallback>
-                <span className="text-xs">
-                  {user?.fullName || user?.primaryEmailAddress?.emailAddress}
-                </span>
-              </Avatar>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => openUserProfile()}>
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => signOut({ redirectUrl: "/" })}
-              className="text-destructive"
-            >
-              Signout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarFooter>
-    </Sidebar>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
+          {/* UNCONNECTED CHANNELS */}
+          <SidebarGroup className={cn(isCollapsed && "px-1")}>
+            <SidebarGroupLabel className="text-xs">
+              Connect Channels
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {isPending ? (
+                  <div className="flex flex-col gap-2">
+                    <Skeleton className="h-8 w-full bg-secondary" />
+                    <Skeleton className="h-8 w-full bg-secondary" />
+                    <Skeleton className="h-8 w-full bg-secondary" />
+                    <Skeleton className="h-8 w-full bg-secondary" />
+                  </div>
+                ) : (
+                  <>
+                    {limitedChannels.map((channel: ChannelType) => {
+                      const icon = getChannelIcon(channel.type);
+                      return (
+                        <SidebarMenuItem key={channel.id}>
+                          <SidebarMenuButton
+                            asChild
+                            tooltip={`Connect ${channel.name}`}
+                          >
+                            <Button
+                              variant="ghost"
+                              className="w-full flex items-center justify-start gap-2 mt-0.5 "
+                              onClick={() => handleConnect(channel.id)}
+                              disabled={connectMutation.isPending}
+                            >
+                              <span>
+                                <div className="relative">
+                                  {icon ? (
+                                    <HugeiconsIcon
+                                      icon={icon}
+                                      color="currentColor"
+                                      style={{ background: channel.color }}
+                                      className="text-white! size-6! p-1 rounded-sm"
+                                    />
+                                  ) : null}
+
+                                  <div
+                                    className={`absolute -right-1 bottom-0 p-0.5 bg-white dark:bg-background rounded-xs`}
+                                  >
+                                    <HugeiconsIcon
+                                      icon={PlusSignIcon}
+                                      className="size-2!"
+                                    />
+                                  </div>
+                                </div>
+                              </span>
+                              <span className="truncate">{channel.name}</span>
+                            </Button>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </>
+                )}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      asChild
+                      className="w-full justify-start mt-2"
+                    >
+                      <Link href="/settings" className="w-full flex gap-2">
+                        <PlusCircleIcon className="size-4" />
+                        <span className="text-sm">More Channels</span>
+                      </Link>
+                    </Button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="mb-3 text-xs text-muted-foreground">
+            <span>
+              {connectedCount}/{totalChannels} channels connected
+            </span>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center cursor-pointer">
+                <Avatar className="h-8 w-8 flex gap-2">
+                  <AvatarImage
+                    src={user?.imageUrl}
+                    alt={user?.fullName || "User"}
+                    className="rendering-pixelated"
+                  />
+                  <AvatarFallback>
+                    {user?.firstName?.charAt(0) || "U"}
+                  </AvatarFallback>
+                  <span className="text-xs">
+                    {user?.fullName || user?.primaryEmailAddress?.emailAddress}
+                  </span>
+                </Avatar>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => openUserProfile()}>
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => signOut({ redirectUrl: "/" })}
+                className="text-destructive"
+              >
+                Signout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarFooter>
+      </Sidebar>
+
+      <CreatePostDialog
+        open={isCreatePostOpen}
+        onOpenChange={setIsCreatePostOpen}
+        selectedDate={null}
+      />
+    </>
   );
 };
 

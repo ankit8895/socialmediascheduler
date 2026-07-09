@@ -8,10 +8,18 @@ type ActionType = (typeof ACTIONS)[number];
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId, has } = await auth();
 
     if (!userId)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const canUseAI = has({ plan: "pro" }) || has({ plan: "premium" });
+
+    if (!canUseAI)
+      return NextResponse.json(
+        { error: "AI post generation requires Pro or Premium plan" },
+        { status: 403 },
+      );
 
     const { action, content = "", prompt = "", channelId } = await req.json();
 
